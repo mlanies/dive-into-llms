@@ -1,32 +1,32 @@
-# 动手学大模型：模型水印
+# Практикум по большим моделям: водяные знаки в моделях
 
-导读: 该部分介绍语言模型的水印
+Введение: этот раздел знакомит с водяными знаками (watermark) в языковых моделях
 
-> 在语言模型生成的内容中嵌入人类无法察觉，但却可以被算法检测的到的“水印”。
+> Встраивание в контент, сгенерированный языковой моделью, «водяного знака», незаметного для человека, но обнаруживаемого алгоритмом.
 
-## 本教程目标
+## Цели этого руководства
 
-1. 水印嵌入：在语言模型生成内容时嵌入水印
-2. 水印检测：检测给定文本的水印强度
-3. 水印评估：评估水印方法的检测性能
-4. 评估水印的鲁棒性（可选）
+1. Встраивание водяного знака: внедрение водяного знака при генерации контента языковой моделью
+2. Обнаружение водяного знака: определение силы водяного знака в заданном тексте
+3. Оценка водяного знака: оценка качества обнаружения у метода водяных знаков
+4. Оценка устойчивости (робастности) водяного знака (опционально)
 
 
 
-## 准备工作
+## Подготовка к работе
 
-### 2.1 了解X-SIR代码仓库
+### 2.1 Знакомство с репозиторием X-SIR
 
 https://github.com/zwhe99/X-SIR
 
-X-SIR仓库包含以下内容的实现
+Репозиторий X-SIR содержит реализацию следующего:
 
-- 三种文本水印算法：X-SIR, SIR和KGW
-- 两种水印去除攻击方法：paraphrase和translation
+- Три алгоритма текстовых водяных знаков: X-SIR, SIR и KGW
+- Два метода атак на удаление водяного знака: paraphrase (перефразирование) и translation (перевод)
 
 ![img](./assets/x-sir.png)
 
-### 2.2 环境准备
+### 2.2 Подготовка окружения
 
 ```Shell
 git clone https://github.com/zwhe99/X-SIR && cd X-SIR
@@ -36,17 +36,17 @@ pip3 install -r requirements.txt
 # [optional] pip3 install flash-attn==2.3.3
 ```
 
-> requirements.txt里的版本均为建议版本，并非强制要求。
+> Версии в requirements.txt являются рекомендуемыми, а не обязательными.
 
 
 
-## 实操案例
+## Практический пример
 
-> 使用KGW算法在语言模型生成内容中嵌入水印
+> Встраивание водяного знака в контент, генерируемый языковой моделью, с помощью алгоритма KGW
 
-### 3.1 数据准备
+### 3.1 Подготовка данных
 
-将待输入给语言模型的提示（prompt）组织成jsonl文件：
+Оформляем промпты, которые будут подаваться языковой модели, в виде jsonl-файла:
 
 ```JSON
 {"prompt": "Ghost of Emmett Till: Based on Real Life Events "}
@@ -55,12 +55,12 @@ pip3 install -r requirements.txt
 ......
 ```
 
-- 每行是一个json object，并至少包含名为“prompt”的键
-- 后续内容以`data/dataset/mc4/mc4.en.jsonl`文件为例。此文件一共包含500条数据，如果觉得模型处理时间过长，可以考虑自行缩减数据。
+- Каждая строка — это json-объект, содержащий как минимум ключ с именем «prompt»
+- В дальнейшем в качестве примера используется файл `data/dataset/mc4/mc4.en.jsonl`. Этот файл содержит всего 500 записей; если вам кажется, что обработка моделью занимает слишком много времени, можно самостоятельно сократить данные.
 
-### 3.2 水印嵌入
+### 3.2 Встраивание водяного знака
 
-- 选择模型和水印算法。这里我们选择`baichuan-inc/Baichuan-7B`模型，以及`KGW`水印算法
+- Выбираем модель и алгоритм водяного знака. Здесь мы выбираем модель `baichuan-inc/Baichuan-7B` и алгоритм водяного знака `KGW`
 
   - ```Shell
     MODEL_NAME=baichuan-inc/Baichuan-7B
@@ -68,7 +68,7 @@ pip3 install -r requirements.txt
     WATERMARK_METHOD_FLAG="--watermark_method kgw"
     ```
 
-- 生成内容，并嵌入水印
+- Генерируем контент и встраиваем в него водяной знак
 
   - ```Shell
     python3 gen.py \
@@ -80,9 +80,9 @@ pip3 install -r requirements.txt
         $WATERMARK_METHOD_FLAG
     ```
 
-  - 此命令将模型生成的内容保存至输出文件：`gen/$MODEL_ABBR/kgw/mc4.en.mod.jsonl`
+  - Эта команда сохраняет сгенерированный моделью контент в выходной файл: `gen/$MODEL_ABBR/kgw/mc4.en.mod.jsonl`
 
-  - 输出文件的格式如下，其中response为模型的输出内容：
+  - Формат выходного файла приведён ниже, где response — это сгенерированный моделью контент:
 
     - ```JSON
       {"prompt": "Ghost of Emmett Till: Based on Real Life Events ", "response": ".In August if 1955 African American Emmett Louis Till (21)\nThe second part of The Man From Waco, about Dan Millers trial for murdering his friend Michael Capps in a Texas wiener wrastle as I believe the statute says called it then; back at that time that would have surely occurred since Dan kept his pistol in one of those watery doggy bags he keeps around to clean himself with after emptying can into a nearby lake just minutes before committing his crime. If what we read is true thats exactly where Dan left his stolen gun and later used it in the robbery gone wrong which killed two innocent boys when his own accomplice got into an argument over not being paid enough therefore wanting out. This angered Miller whos history of mental instability could be taken one way or another but this criminal act was unavoidable once they entered FBIs hands and some other very powerful law officers who were involved either directly"}
@@ -93,11 +93,11 @@ pip3 install -r requirements.txt
 
 
 
-### 3.3 水印检测
+### 3.3 Обнаружение водяного знака
 
-> 水印检测即给定一段文本，计算该段文本的水印强度（z-score）。
+> Обнаружение водяного знака — это, по заданному фрагменту текста, вычисление силы водяного знака в этом фрагменте (z-score).
 
-- 计算**有水印**文本的水印强度
+- Вычисляем силу водяного знака для текста **с водяным знаком**
 
   - ```python
     python3 detect.py \
@@ -107,7 +107,7 @@ pip3 install -r requirements.txt
         $WATERMARK_METHOD_FLAG
     ```
 
-- 计算**无水印**文本的水印强度
+- Вычисляем силу водяного знака для текста **без водяного знака**
 
   - ```python
     python3 detect.py \
@@ -117,7 +117,7 @@ pip3 install -r requirements.txt
         $WATERMARK_METHOD_FLAG
     ```
 
-- 输出的文件格式为：
+- Формат выходного файла:
 
   - ```JSON
     {"z_score": 12.105422509165574, "prompt": "Ghost of Emmett Till: Based on Real Life Events ", "response": ".In August if 1955 African American Emmett Louis Till (21)\nThe second part of The Man From Waco, about Dan Millers trial for murdering his friend Michael Capps in a Texas wiener wrastle as I believe the statute says called it then; back at that time that would have surely occurred since Dan kept his pistol in one of those watery doggy bags he keeps around to clean himself with after emptying can into a nearby lake just minutes before committing his crime. If what we read is true thats exactly where Dan left his stolen gun and later used it in the robbery gone wrong which killed two innocent boys when his own accomplice got into an argument over not being paid enough therefore wanting out. This angered Miller whos history of mental instability could be taken one way or another but this criminal act was unavoidable once they entered FBIs hands and some other very powerful law officers who were involved either directly", "biases": null}
@@ -126,12 +126,12 @@ pip3 install -r requirements.txt
     ......
     ```
 
-- 肉眼查看一下两个文件水印强度的区别
+- Сравните на глаз разницу в силе водяного знака между двумя файлами
 
-### 3.4 水印评估
+### 3.4 Оценка водяного знака
 <a name="eval"></a>
 
-- 输入水印检测的z-score文件，计算检测准确度，绘制ROC曲线
+- Подаём на вход z-score файлы из обнаружения водяного знака, вычисляем точность обнаружения и строим ROC-кривую
 
   - ```Shell
     python3 eval_detection.py \
@@ -150,25 +150,25 @@ pip3 install -r requirements.txt
 
 ![img](./assets/curve.png)
 
-## 评估水印的鲁棒性（可选）
+## Оценка устойчивости (робастности) водяного знака (опционально)
 
-> 对水印文本进行paraphrase和translation攻击后，重新评估其检测效果
+> После атаки на текст с водяным знаком методами paraphrase и translation повторно оцениваем качество его обнаружения
 
-### 4.1 准备工作
+### 4.1 Подготовка
 
-我们使用gpt-3.5-turbo-1106模型对水印文本进行paraphrase和translation。也可以自行选择其它工具。
+Мы используем модель gpt-3.5-turbo-1106 для перефразирования (paraphrase) и перевода (translation) текста с водяным знаком. Можно также выбрать другие инструменты по своему усмотрению.
 
-- 设置openai的apikey
+- Устанавливаем apikey OpenAI
 
   - ```Shell
     export OPENAI_API_KEY=xxxx
     ```
 
-- 修改`attack/const.py`中的RPM (requests per min) and TPM (tokens per min)
+- Меняем в `attack/const.py` значения RPM (requests per min) и TPM (tokens per min)
 
-### 4.2 进行攻击（以翻译为例）
+### 4.2 Проведение атаки (на примере перевода)
 
-- 将水印文本翻译成中文
+- Переводим текст с водяным знаком на китайский
 
   - ```Shell
     python3 attack/translate.py \
@@ -179,14 +179,14 @@ pip3 install -r requirements.txt
         --tgt_lang zh
     ```
 
-- 重新评估
+- Повторно оцениваем
 
-  -  见[3.4](#eval)
+  -  см. [3.4](#eval)
 
-- 比较攻击前后水印性能的变化
+- Сравниваем изменение качества водяного знака до и после атаки
 
 
 
-## 进阶练习
+## Продвинутые упражнения
 
-- 查看[X-SIR](https://github.com/zwhe99/X-SIR)文档，学习使用其它两种（X-SIR，SIR）算法，并评估其在不同攻击方法下的性能
+- Изучите документацию [X-SIR](https://github.com/zwhe99/X-SIR), научитесь использовать два других алгоритма (X-SIR, SIR) и оцените их качество при разных методах атак
